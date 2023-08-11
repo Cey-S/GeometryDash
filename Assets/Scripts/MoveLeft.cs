@@ -4,21 +4,26 @@ using UnityEngine;
 
 public class MoveLeft : MonoBehaviour
 {
-    private float moveSpeed;
+    private bool isMoving = true;
 
-    private void Start()
-    {
-        moveSpeed = 10.0f;
-    }
+    [SerializeField] private float moveSpeed = 10.0f;
 
     private void Update()
     {
-        transform.Translate(Vector2.left * moveSpeed * Time.deltaTime);
+        if (isMoving)
+        {
+            transform.Translate(Vector2.left * moveSpeed * Time.deltaTime);
+        }
+    }
+
+    public void StartMovement()
+    {
+        isMoving = true;
     }
 
     private void StopMovement()
     {
-        moveSpeed = 0;
+        isMoving = false;
     }
 
     private void OnEnable()
