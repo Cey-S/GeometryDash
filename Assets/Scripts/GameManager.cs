@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private Player player;
     [SerializeField] private ParticleSystem explosionParticle;
+    [SerializeField] private AudioSource bgMusic;
+    [SerializeField] private AudioSource crashSound;
 
     private Vector3 playerStartPos;
     private int attempt;
@@ -85,6 +87,9 @@ public class GameManager : MonoBehaviour
         player.transform.position = playerStartPos;
         player.gameObject.SetActive(true);
 
+        bgMusic.Stop();
+        bgMusic.Play();
+
         attempt++;
         RefreshUI?.Invoke(attempt);
     }
@@ -93,6 +98,7 @@ public class GameManager : MonoBehaviour
     {
         IsGameRunning = false;
 
+        crashSound.Play();
         explosionParticle.transform.position = player.transform.position;
         explosionParticle.gameObject.SetActive(true);
         player.gameObject.SetActive(false);

@@ -7,6 +7,7 @@ public class Player : MonoBehaviour
     public Transform sprite;
     public ParticleSystem dirtParticle;
     private Rigidbody2D rb;
+    private UnityEngine.EventSystems.EventSystem currentEventSystem;
 
     [SerializeField] private float jumpForce;
     [SerializeField] private float rotationDegree;
@@ -20,6 +21,7 @@ public class Player : MonoBehaviour
 
     private void Awake()
     {
+        currentEventSystem = UnityEngine.EventSystems.EventSystem.current;
         rb = GetComponent<Rigidbody2D>();
         Gravity = rb.gravityScale;
         surfGravity = Gravity * 0.5f;
@@ -29,16 +31,26 @@ public class Player : MonoBehaviour
     {
         if (GameManager.IsGameRunning)
         {
+            bool isThereInput = Input.GetMouseButton(0);
+            if (isThereInput)
+            {
+                bool isOverUI = currentEventSystem.IsPointerOverGameObject();
+                if (isOverUI)
+                {
+                    return; // UI element is clicked (Pause Button)
+                }                
+            }            
+
             if (GameManager.currentGameMode == GameManager.GameMode.Running)
             {
-                if (Input.GetMouseButton(0) && isGrounded)
+                if (isThereInput && isGrounded)
                 {
                     Jump();
                 }
             }
             else if (GameManager.currentGameMode == GameManager.GameMode.Surfing)
             {
-                if (Input.GetMouseButton(0))
+                if (isThereInput)
                 {
                     rb.gravityScale = -surfGravity;
                     if (rb.velocity.y > surfVelocityLimit)

@@ -4,7 +4,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class MenuManager : MonoBehaviour
 {
-    public GameObject SettingsPanel;
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private AudioSource sfxSource;
+
+    private void Start()
+    {
+        settingsPanel.SetActive(false);
+    }
 
     public void GoToGame()
     {
@@ -13,12 +19,14 @@ public class MenuManager : MonoBehaviour
 
     public void OpenSettings()
     {
-        SettingsPanel.SetActive(true);
+        settingsPanel.SetActive(true);
+        sfxSource.Play();
     }
 
     public void GoBackFromSettings()
     {
-        SettingsPanel.SetActive(false);
+        settingsPanel.SetActive(false);
+        sfxSource.Play();
     }
 
     public void QuitGame()
