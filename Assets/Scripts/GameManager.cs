@@ -20,19 +20,20 @@ public class GameManager : MonoBehaviour
         Surfing
     }
 
-    public static GameMode currentGameMode;
-    public static bool IsGameRunning;
+    public static GameMode CurrentGameMode { get; private set; }
+    public static bool IsGameRunning { get; private set; }
 
     public delegate void OnResetLevel();
     public static event OnResetLevel ResetLevelDesign;
 
-    public delegate void OnAttemptChange(int attempt);
-    public static event OnAttemptChange RefreshUI;
+    public delegate void OnUIChange(int attempt);
+    public static event OnUIChange RefreshAttemptText;
+    public static event OnUIChange DisplayFinishPanel;
 
     private void Start()
     {
         IsGameRunning = false;
-        currentGameMode = GameMode.Running;
+        CurrentGameMode = GameMode.Running;
 
         waitForRestart = new WaitForSeconds(2.0f);
 
@@ -63,7 +64,7 @@ public class GameManager : MonoBehaviour
         }
 
         ResetLevelDesign?.Invoke();
-        RefreshUI?.Invoke(attempt);
+        RefreshAttemptText?.Invoke(attempt);
 
         IsGameRunning = true;
     }
@@ -82,7 +83,7 @@ public class GameManager : MonoBehaviour
 
         explosionParticle.gameObject.SetActive(false);
 
-        currentGameMode = GameMode.Running;
+        CurrentGameMode = GameMode.Running;
         player.GetComponent<Rigidbody2D>().gravityScale = Player.Gravity;
         player.transform.position = playerStartPos;
         player.gameObject.SetActive(true);
@@ -91,7 +92,7 @@ public class GameManager : MonoBehaviour
         bgMusic.Play();
 
         attempt++;
-        RefreshUI?.Invoke(attempt);
+        RefreshAttemptText?.Invoke(attempt);
     }
 
     private void PlayerDeath()
@@ -106,15 +107,21 @@ public class GameManager : MonoBehaviour
         StartCoroutine(GoBackToBeginning());
     }
 
+    private void FinishGame()
+    {
+        IsGameRunning = false;
+        DisplayFinishPanel?.Invoke(attempt);
+    }
+
     private void ChangeGameMode()
     {
-        switch (currentGameMode)
+        switch (CurrentGameMode)
         {
             case GameMode.Running:
-                currentGameMode = GameMode.Surfing;
+                CurrentGameMode = GameMode.Surfing;
                 break;
             case GameMode.Surfing:
-                currentGameMode = GameMode.Running;
+                CurrentGameMode = GameMode.Running;
                 player.GetComponent<Rigidbody2D>().gravityScale = Player.Gravity;
                 break;
         }
@@ -124,11 +131,13 @@ public class GameManager : MonoBehaviour
     {
         Obstacle.playerCollided += PlayerDeath;
         Portal.portalEntered += ChangeGameMode;
+        FinishLine.GameFinished += FinishGame;
     }
 
     private void OnDisable()
     {
         Obstacle.playerCollided -= PlayerDeath;
         Portal.portalEntered -= ChangeGameMode;
+        FinishLine.GameFinished -= FinishGame;
     }
 }

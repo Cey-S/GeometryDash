@@ -6,7 +6,10 @@ using UnityEngine.UI;
 
 public class GameUIHandler : MonoBehaviour
 {
+    [SerializeField] private GameObject pauseButton;
     [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject finishPanel;
+    [SerializeField] private Text finishText;
     [SerializeField] private AudioSource bgMusic;
     [SerializeField] private Text attemptText;
     [SerializeField] private Text OutOfCanvasPoint;
@@ -17,7 +20,11 @@ public class GameUIHandler : MonoBehaviour
 
     private void Start()
     {
+        pauseButton.SetActive(true);
+        attemptText.gameObject.SetActive(true);
         originalTextPos = attemptText.rectTransform.position;
+
+        finishPanel.SetActive(false);
         settingsPanel.SetActive(false);
         isPaused = false;
     }
@@ -46,6 +53,13 @@ public class GameUIHandler : MonoBehaviour
         }
     }
 
+    private void DisplayFinishPanel(int attempt)
+    {
+        pauseButton.SetActive(false);
+        finishPanel.SetActive(true);
+        finishText.text = $"Attempts: {attempt}";
+    }
+
     private void MoveLeft()
     {
         attemptText.rectTransform.position = originalTextPos;
@@ -60,11 +74,13 @@ public class GameUIHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        GameManager.RefreshUI += RefreshAttemptText;
+        GameManager.RefreshAttemptText += RefreshAttemptText;
+        GameManager.DisplayFinishPanel += DisplayFinishPanel;
     }
 
     private void OnDisable()
     {
-        GameManager.RefreshUI -= RefreshAttemptText;
+        GameManager.RefreshAttemptText -= RefreshAttemptText;
+        GameManager.DisplayFinishPanel -= DisplayFinishPanel;
     }
 }

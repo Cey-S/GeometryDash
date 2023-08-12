@@ -41,14 +41,14 @@ public class Player : MonoBehaviour
                 }                
             }            
 
-            if (GameManager.currentGameMode == GameManager.GameMode.Running)
+            if (GameManager.CurrentGameMode == GameManager.GameMode.Running)
             {
                 if (isThereInput && isGrounded)
                 {
                     Jump();
                 }
             }
-            else if (GameManager.currentGameMode == GameManager.GameMode.Surfing)
+            else if (GameManager.CurrentGameMode == GameManager.GameMode.Surfing)
             {
                 if (isThereInput)
                 {
