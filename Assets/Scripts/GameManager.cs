@@ -6,11 +6,13 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private Player player;
     [SerializeField] private ParticleSystem explosionParticle;
-    [SerializeField] private GameObject levelDesign;
 
     private int attempt;
 
     private WaitForSeconds waitForRestart;
+
+    public delegate void OnResetLevel();
+    public static event OnResetLevel ResetLevelDesign;
 
     public delegate void OnAttemptChange(int attempt);
     public static event OnAttemptChange RefreshUI;
@@ -18,8 +20,33 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         waitForRestart = new WaitForSeconds(2.0f);
-        
+
         attempt = 1;
+
+        StartCoroutine(PlayIntro());
+    }
+
+    private IEnumerator PlayIntro()
+    {
+        float lerpSpeed = 10.0f;
+
+        Vector3 endPos = player.transform.position;
+        Vector3 startPos = endPos + Vector3.left * 10.0f;
+        float journeyLenght = Vector3.Distance(startPos, endPos);
+        float startTime = Time.time;
+
+        float distanceCovered = (Time.time - startTime) * lerpSpeed;
+        float fractionOfJourney = distanceCovered / journeyLenght;
+
+        while (fractionOfJourney < 1)
+        {
+            distanceCovered = (Time.time - startTime) * lerpSpeed;
+            fractionOfJourney = distanceCovered / journeyLenght;
+            player.transform.position = Vector3.Lerp(startPos, endPos, fractionOfJourney);
+            yield return null;
+        }
+
+        ResetLevelDesign?.Invoke();
         RefreshUI?.Invoke(attempt);
     }
 
@@ -32,8 +59,8 @@ public class GameManager : MonoBehaviour
 
     private void ResetGame()
     {
-        levelDesign.transform.position = Vector3.zero;
-        levelDesign.GetComponent<MoveLeft>().StartMovement();
+        ResetLevelDesign?.Invoke();
+
         explosionParticle.gameObject.SetActive(false);
         player.gameObject.SetActive(true);
 

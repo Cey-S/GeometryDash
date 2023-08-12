@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class MoveLeft : MonoBehaviour
 {
-    private bool isMoving = true;
+    private bool isMoving;
 
     [SerializeField] private float moveSpeed = 10.0f;
+
+    private void Start()
+    {
+        isMoving = false;    
+    }
 
     private void Update()
     {
@@ -16,8 +21,9 @@ public class MoveLeft : MonoBehaviour
         }
     }
 
-    public void StartMovement()
+    private void ResetMovement()
     {
+        transform.position = Vector3.zero;
         isMoving = true;
     }
 
@@ -29,10 +35,12 @@ public class MoveLeft : MonoBehaviour
     private void OnEnable()
     {
         Obstacle.playerCollided += StopMovement;
+        GameManager.ResetLevelDesign += ResetMovement;
     }
 
     private void OnDisable()
     {
         Obstacle.playerCollided -= StopMovement;
+        GameManager.ResetLevelDesign -= ResetMovement;
     }
 }
