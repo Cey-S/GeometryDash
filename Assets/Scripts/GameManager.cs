@@ -7,9 +7,19 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Player player;
     [SerializeField] private ParticleSystem explosionParticle;
 
+    private Vector3 playerStartPos;
     private int attempt;
 
     private WaitForSeconds waitForRestart;
+
+    public enum GameMode
+    {
+        Running,
+        Surfing
+    }
+
+    public static GameMode currentGameMode;
+    public static bool IsGameRunning;
 
     public delegate void OnResetLevel();
     public static event OnResetLevel ResetLevelDesign;
@@ -19,8 +29,12 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        IsGameRunning = false;
+        currentGameMode = GameMode.Running;
+
         waitForRestart = new WaitForSeconds(2.0f);
 
+        playerStartPos = player.transform.position;
         attempt = 1;
 
         StartCoroutine(PlayIntro());
@@ -48,6 +62,8 @@ public class GameManager : MonoBehaviour
 
         ResetLevelDesign?.Invoke();
         RefreshUI?.Invoke(attempt);
+
+        IsGameRunning = true;
     }
 
     private IEnumerator GoBackToBeginning()
@@ -55,6 +71,7 @@ public class GameManager : MonoBehaviour
         yield return waitForRestart;
 
         ResetGame();
+        IsGameRunning = true;
     }
 
     private void ResetGame()
@@ -62,6 +79,10 @@ public class GameManager : MonoBehaviour
         ResetLevelDesign?.Invoke();
 
         explosionParticle.gameObject.SetActive(false);
+
+        currentGameMode = GameMode.Running;
+        player.GetComponent<Rigidbody2D>().gravityScale = Player.Gravity;
+        player.transform.position = playerStartPos;
         player.gameObject.SetActive(true);
 
         attempt++;
@@ -70,19 +91,38 @@ public class GameManager : MonoBehaviour
 
     private void PlayerDeath()
     {
+        IsGameRunning = false;
+
+        explosionParticle.transform.position = player.transform.position;
         explosionParticle.gameObject.SetActive(true);
         player.gameObject.SetActive(false);
 
         StartCoroutine(GoBackToBeginning());
     }
 
+    private void ChangeGameMode()
+    {
+        switch (currentGameMode)
+        {
+            case GameMode.Running:
+                currentGameMode = GameMode.Surfing;
+                break;
+            case GameMode.Surfing:
+                currentGameMode = GameMode.Running;
+                player.GetComponent<Rigidbody2D>().gravityScale = Player.Gravity;
+                break;
+        }
+    }
+
     private void OnEnable()
     {
         Obstacle.playerCollided += PlayerDeath;
+        Portal.portalEntered += ChangeGameMode;
     }
 
     private void OnDisable()
     {
         Obstacle.playerCollided -= PlayerDeath;
+        Portal.portalEntered -= ChangeGameMode;
     }
 }

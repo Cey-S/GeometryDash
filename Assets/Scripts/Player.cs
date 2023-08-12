@@ -12,26 +12,59 @@ public class Player : MonoBehaviour
     [SerializeField] private float rotationDegree;
     [SerializeField] private float flipDuration;
 
+    public static float Gravity;
+    private float surfGravity;
+    [SerializeField] private float surfVelocityLimit;
+
     private bool isGrounded;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        Gravity = rb.gravityScale;
+        surfGravity = Gravity * 0.5f;
     }
 
     private void FixedUpdate()
     {
-        if (Input.GetMouseButton(0))
+        if (GameManager.IsGameRunning)
         {
-            if (isGrounded)
+            if (GameManager.currentGameMode == GameManager.GameMode.Running)
             {
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-                StartCoroutine(Flip(rotationDegree, flipDuration));
-                dirtParticle.Stop();
-
-                isGrounded = false;
+                if (Input.GetMouseButton(0) && isGrounded)
+                {
+                    Jump();
+                }
             }
-        }        
+            else if (GameManager.currentGameMode == GameManager.GameMode.Surfing)
+            {
+                if (Input.GetMouseButton(0))
+                {
+                    rb.gravityScale = -surfGravity;
+                    if (rb.velocity.y > surfVelocityLimit)
+                    {
+                        rb.velocity = new Vector2(rb.velocity.x, surfVelocityLimit);
+                    }
+                }
+                else
+                {
+                    rb.gravityScale = surfGravity;
+                    if (rb.velocity.y < -surfVelocityLimit)
+                    {
+                        rb.velocity = new Vector2(rb.velocity.x, -surfVelocityLimit);
+                    }
+                }
+            }
+        }
+    }
+
+    private void Jump()
+    {
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        StartCoroutine(Flip(rotationDegree, flipDuration));
+        dirtParticle.Stop();
+
+        isGrounded = false;
     }
 
     private IEnumerator Flip(float degree = 180.0f, float duration = 1.0f)
@@ -41,7 +74,7 @@ public class Player : MonoBehaviour
 
         float elapsedTime = 0.0f;
 
-        while(elapsedTime < duration)
+        while (elapsedTime < duration)
         {
             sprite.rotation = Quaternion.Slerp(beginRot, endRot, elapsedTime / duration);
             elapsedTime += Time.deltaTime;
@@ -49,7 +82,7 @@ public class Player : MonoBehaviour
         }
 
         SnapToGround();
-    }       
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -60,12 +93,12 @@ public class Player : MonoBehaviour
             dirtParticle.Play();
             SnapToGround();
         }
-    }        
+    }
 
     private void SnapToGround()
     {
         Vector3 endRotation = sprite.rotation.eulerAngles;
         endRotation.z = Mathf.Round(endRotation.z / 180) * 180;
         sprite.rotation = Quaternion.Euler(endRotation);
-    }    
+    }
 }
